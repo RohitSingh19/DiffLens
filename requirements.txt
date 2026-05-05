@@ -6,6 +6,4 @@ openai
 python-multipart
 requests
 chromadb
-sentence-transformers
 numpy
-torch
