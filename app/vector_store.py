@@ -3,11 +3,11 @@ from app.embedder import CodeEmbedder
 
 
 class VectorStore:
-    def __init__(self):
+    def __init__(self, repo_key: str):
         self.client = chromadb.PersistentClient(path="./chroma_db")
 
         self.collection = self.client.get_or_create_collection(
-            name="code_review_chunks"
+            name=f"codebase_{repo_key}"
         )
 
         self.embedder = CodeEmbedder()

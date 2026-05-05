@@ -7,12 +7,7 @@ from app.retriever import retrieve_related_context
 from app.severity import normalize_severity, severity_priority
 from app.vector_store import VectorStore
 
-vector_store = VectorStore()
 
-
-# ------------------------
-# Prompt Builder (FIXED)
-# ------------------------
 def build_prompt(filename, file_content, related_context, semantic_context, diff):
     related_text = "\n\n".join([
         f"RELATED FILE: {item['file']}\n{item['content'][:1000]}"
@@ -95,9 +90,7 @@ FORMAT:
 """
 
 
-# ------------------------
-# Main Analyzer
-# ------------------------
+
 def analyze_diff(full_diff: str, owner: str, repo: str):
     files = split_diff_by_file(full_diff)
     all_comments = []
@@ -106,10 +99,10 @@ def analyze_diff(full_diff: str, owner: str, repo: str):
         filename = file_data["file"]
         diff = file_data["diff"]
 
-        # Step 1: File content
+
         file_content = fetch_file_content(owner, repo, filename)
 
-        # Step 2: Import-based retrieval
+
         related_context = retrieve_related_context(
             owner=owner,
             repo=repo,
@@ -120,6 +113,9 @@ def analyze_diff(full_diff: str, owner: str, repo: str):
         # Step 3: Semantic retrieval (IMPROVED QUERY)
         query = f"{filename}\n{diff[:400]}"
 
+        repo_key = f"{owner}_{repo}"
+        vector_store = VectorStore(repo_key)
+
         raw_semantic = vector_store.search_similar_text(
             query=query,
             top_k=5
@@ -127,13 +123,13 @@ def analyze_diff(full_diff: str, owner: str, repo: str):
 
         semantic_context = trim_and_dedup_context(raw_semantic)
 
-        # 🔥 DEBUG (keep for now)
+        
         print("\n--- SEMANTIC CONTEXT ---")
         for chunk in semantic_context:
             print(chunk[:200])
         print("------------------------\n")
 
-        # Step 4: Prompt
+        
         prompt = build_prompt(
             filename=filename,
             file_content=file_content,
@@ -142,17 +138,17 @@ def analyze_diff(full_diff: str, owner: str, repo: str):
             diff=diff
         )
 
-        # Step 5: LLM
+        
         raw_output = analyze_code(prompt)
 
-        # Step 6: Parse
+        
         parsed = safe_json_parse(raw_output)
 
-        # Step 7: Validate
+        
         validated = validate_comments(parsed)
         filtered = filter_comments(validated)
 
-        # Step 8: Normalize severity
+        
         normalized = [
             normalize_severity(comment)
             for comment in filtered
@@ -163,7 +159,7 @@ def analyze_diff(full_diff: str, owner: str, repo: str):
 
         all_comments.extend(normalized)
 
-    # Step 9: Sort
+    
     all_comments.sort(
         key=lambda x: severity_priority(x.get("severity", "LOW")),
         reverse=True
@@ -171,10 +167,6 @@ def analyze_diff(full_diff: str, owner: str, repo: str):
 
     return all_comments
 
-
-# ------------------------
-# Helpers
-# ------------------------
 
 def filter_comments(comments):
     return [
@@ -210,7 +202,7 @@ def clean_llm_output(output: str) -> str:
     return output.strip()
 
 
-# 🔥 NEW: Better semantic handling
+
 def trim_and_dedup_context(chunks):
     seen = set()
     cleaned = []

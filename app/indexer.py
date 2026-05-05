@@ -1,5 +1,7 @@
 import requests
 import os
+from app import embedder
+from app import embedder
 from app.chunker import chunk_code
 from app.vector_store import VectorStore
 from dotenv import load_dotenv
@@ -56,27 +58,26 @@ def fetch_file_content(owner, repo, path, branch="main"):
     import base64
     return base64.b64decode(data["content"]).decode("utf-8")
 
+def build_vector_index(owner: str, repo: str):
+    
+    repo_key = f"{owner}_{repo}"
 
-def build_vector_index(owner, repo):
-    store = VectorStore()
+    vector_store = VectorStore(repo_key)
 
-    print("Fetching repo file list...")
     files = fetch_repo_files(owner, repo)
 
-    print(f"Found {len(files)} files")
+    for file in files[:50]:
+        content = fetch_file_content(owner, repo, file)
 
-    for file_path in files[:50]:  # limit for now
-        try:
-            content = fetch_file_content(owner, repo, file_path)
+        chunks = chunk_code(content, chunk_size=40)
 
-            if not content.strip():
-                continue
+        embeddings = embedder.generate_embeddings(chunks)
 
-            chunks = chunk_code(file_path, content, chunk_size=40)
+        vector_store.collection.add(
+            documents=chunks,
+            embeddings=embeddings,
+            metadatas=[{"file": file}] * len(chunks)
+        )
 
-            store.add_chunks(chunks)
-
-        except Exception as e:
-            print(f"Error processing {file_path}: {e}")
-
-    print("Indexing complete.")
+def is_index_empty(vector_store):
+    return vector_store.collection.count() == 0
