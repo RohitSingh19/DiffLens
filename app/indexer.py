@@ -2,7 +2,7 @@ from importlib.resources import files
 
 import requests
 import os
-from app import embedder
+from app.embedder import CodeEmbedder
 from app import embedder
 from app import vector_store
 from app.chunker import chunk_code
@@ -62,11 +62,11 @@ def fetch_file_content(owner, repo, path, branch="main"):
     return base64.b64decode(data["content"]).decode("utf-8")
 
 def build_vector_index(owner: str, repo: str):
-    
     repo_key = f"{owner}_{repo}"
 
     vector_store = VectorStore(repo_key)
-
+    embedder = CodeEmbedder()  
+    
     files = fetch_repo_files(owner, repo)
 
     for file in files[:50]:
