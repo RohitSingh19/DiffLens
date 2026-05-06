@@ -16,12 +16,12 @@ The service ingests a PR diff, fetches repository context from GitHub, retrieves
 
 ## How It Works
 
-1. A pull request is submitted directly through the API or received through the GitHub webhook.
-2. DiffLens fetches the PR diff and file contents from GitHub.
-3. The analyzer retrieves nearby and semantically related code context using the local vector store.
-4. The LLM reviews the changed code in context and returns strict JSON findings.
-5. Findings are validated, normalized, filtered by confidence, and ranked by severity.
-6. DiffLens creates a GitHub review with inline comments on the pull request.
+- A pull request is submitted directly through the API or received through the GitHub webhook.
+- DiffLens fetches the PR diff and file contents from GitHub.
+- The analyzer retrieves nearby and semantically related code context using the local vector store.
+- The LLM reviews the changed code in context and returns strict JSON findings.
+- Findings are validated, normalized, filtered by confidence, and ranked by severity.
+- DiffLens creates a GitHub review with inline comments on the pull request.
 
 ## Tech Stack
 
@@ -48,25 +48,24 @@ GITHUB_TOKEN=your_github_token
 GITHUB_WEBHOOK_SECRET=your_github_webhook_secret
 ```
 
-## Local Setup
+# Local Setup
 
-# Clone Repository 
+## Clone Repository 
+- git clone https://github.com/your-username/DiffLens.git
+- cd DiffLens
 
-git clone https://github.com/your-username/DiffLens.git
-cd DiffLens
-
-# Create Virtual Environment
+## Create Virtual Environment
 python -m venv .venv
 
-# Install Dependencies
+## Install Dependencies
 pip install -r requirements.txt
 
-# Configure Environment Variables
-OPENAI_API_KEY=your_openai_api_key
-GITHUB_TOKEN=your_github_token
-GITHUB_WEBHOOK_SECRET=your_secret
+## Configure Environment Variables
+- OPENAI_API_KEY=your_openai_api_key
+- GITHUB_TOKEN=your_github_token
+- GITHUB_WEBHOOK_SECRET=your_secret
 
-# Run FastAPI Server
+## Run FastAPI Server
 uvicorn app.main:app --reload
 ```
 
