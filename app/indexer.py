@@ -1,7 +1,10 @@
+from importlib.resources import files
+
 import requests
 import os
 from app import embedder
 from app import embedder
+from app import vector_store
 from app.chunker import chunk_code
 from app.vector_store import VectorStore
 from dotenv import load_dotenv
@@ -69,14 +72,16 @@ def build_vector_index(owner: str, repo: str):
     for file in files[:50]:
         content = fetch_file_content(owner, repo, file)
 
-        chunks = chunk_code(content, chunk_size=40)
+        chunks = chunk_code(file, content, chunk_size=40)
 
-        embeddings = embedder.generate_embeddings(chunks)
+        chunk_texts = [chunk["content"] for chunk in chunks]
+
+        embeddings = embedder.generate_embeddings(chunk_texts)
 
         vector_store.collection.add(
-            documents=chunks,
+            documents=chunk_texts,
             embeddings=embeddings,
-            metadatas=[{"file": file}] * len(chunks)
+            metadatas=chunks
         )
 
 def is_index_empty(vector_store):
