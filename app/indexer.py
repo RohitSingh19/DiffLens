@@ -75,10 +75,13 @@ def build_vector_index(owner: str, repo: str):
         chunks = chunk_code(file, content, chunk_size=40)
 
         chunk_texts = [chunk["content"] for chunk in chunks]
+        
+        chunk_ids = [chunk["id"] for chunk in chunks]
 
         embeddings = embedder.generate_embeddings(chunk_texts)
 
         vector_store.collection.add(
+            ids=chunk_ids,
             documents=chunk_texts,
             embeddings=embeddings,
             metadatas=chunks
